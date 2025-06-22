@@ -1,103 +1,109 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+
+const subjects = [
+  "Software Engineering",
+  "Mathematics",
+  "Robotics",
+  "Economics",
+  "Artificial Intelligence",
+  "Quantum Physics",
+  "Oragnic Chemistry",
+  "Marketing",
+  "Business Ethics",
+  "Psychology"
+];
+
+type VoteMap = { [key: string]: number };
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [votes, setVotes] = useState<VoteMap>({});
+  const [totalVotes, setTotalVotes] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const storedVotes = localStorage.getItem('votes');
+    const parsedVotes = storedVotes ? JSON.parse(storedVotes) : {};
+    const storedCounts = localStorage.getItem('voteCounts');
+    const parsedCounts = storedCounts ? JSON.parse(storedCounts) : {};
+    setVotes(parsedCounts);
+    setTotalVotes(Object.values(parsedCounts as Record<string, number>).reduce((a, b) => a + b, 0));
+  }, []);
+
+  const handleVote = (subject: string) => {
+    const voted = localStorage.getItem('voted-' + subject);
+    if (voted) return alert("You already voted for this subject!");
+
+    const newVotes = { ...votes, [subject]: (votes[subject] || 0) + 1 };
+    setVotes(newVotes);
+    localStorage.setItem('voteCounts', JSON.stringify(newVotes));
+    localStorage.setItem('voted-' + subject, 'yes');
+    setTotalVotes(totalVotes + 1);
+  };
+
+  const sortedSubjects = [...subjects].sort(
+    (a, b) => (votes[b] || 0) - (votes[a] || 0)
+  );
+
+  const topSubject = sortedSubjects[0];
+  const getColor = (rank: number) =>
+    ['bg-yellow-400', 'bg-gray-300', 'bg-orange-400'][rank] || 'bg-purple-300';
+
+  return (
+    <main className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4 text-center">🏆 Leaderboard</h1>
+      <div className="flex justify-center mb-8">
+        <div className={`card w-64 h-44 bg-yellow-400`}>
+          <div className="text-2xl font-semibold">🥇 Coolest Subject</div>
+          <div className="mt-3 font-bold text-xl">{topSubject}</div>
+          <div className="text-sm text-blue-800 mt-1">
+          {Math.round(((votes[topSubject] || 0) / totalVotes) * 100) || 0}% votes
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-4 text-center">📊 Subjects Vote Meter</h2>
+      <div className="bg-purple-800 rounded-lg p-4">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-white">
+              <th className="p-2">#</th>
+              <th>Subject</th>
+              <th>Vote</th>
+              <th>Coolness</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedSubjects.map((subject, idx) => {
+              const percent = totalVotes ? Math.round((votes[subject] || 0) / totalVotes * 100) : 0;
+              return (
+                <tr key={subject} className="border-t border-purple-700">
+                  <td className="p-2">{idx + 1}</td>
+                  <td>{subject}</td>
+                  <td>
+                    <button
+                      onClick={() => handleVote(subject)}
+                      className="bg-pink-400 hover:bg-pink-500 px-4 py-1 rounded-full text-white text-xs"
+                    >
+                      Vote
+                    </button>
+                  </td>
+                  <td className="w-1/2">
+                    <div className="bg-purple-200 h-4 rounded-full overflow-hidden">
+                      <div
+                        className="bg-pink-400 h-full text-xs text-right pr-1"
+                        style={{ width: `${percent}%` }}
+                      >
+                        {percent > 0 ? `${percent}%` : ''}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </main>
   );
 }
